@@ -1,4 +1,7 @@
 #![feature(const_fn)]
+#![feature(const_if_match)]
+#![feature(const_loop)]
+#![feature(const_panic)]
 
 use libc::c_char;
 
@@ -79,42 +82,42 @@ impl Drop for FrameGuard {
     }
 }
 
-pub const fn cstr(x: &str) -> &[u8] {
-    //use std::ffi::CString;
-    //let s = unsafe { CString::from_vec_unchecked(x.into()) };
-    //s.as_ptr()
-    // b"hi\0"
-    /*
+pub const fn const_cstr(x: &'static str) -> [u8; 64] {
+    assert!(x.len() < 64);
     let x = x.as_bytes();
-    let mut res: [u8; 42] = [0; 42];
-    for i in 0..42 {
-        unsafe {
-            if i < x.len() {
-                res[i] = x[i]
-            } else {
-                res[i] = 0;
-            }
+    let mut res: [u8; 64] = [0; 64];
+    let mut i = 0;
+    while i < 63 {
+        if i < x.len() {
+            res[i] = x[i]
+        } else {
+            res[i] = 0;
         }
+        i += 1;
     }
-    unsafe { &res }
-    */
-    x.as_bytes()
+    res
 }
 
 #[macro_export]
 macro_rules! zone {
     ($func:literal) => {
-        use libc::c_char;
-        use $crate::{ZoneGuard, ___tracy_source_location_data};
-        static _srcloc: ___tracy_source_location_data = ___tracy_source_location_data {
-            color: 0,
-            line: line!(),
-            file: b"file\0" as *const _ as *const c_char,
-            function: b"function\0" as *const _ as *const c_char,
-            name: b"name\0" as *const _ as *const c_char,
-        };
-        let __srcloc: &'static ___tracy_source_location_data = &_srcloc;
-        let _guard = ZoneGuard::from(unsafe { $crate::___tracy_emit_zone_begin(__srcloc, 1) });
+        $crate::zone!($func, $func)
+    };
+    ($func:literal, $name:literal) => {
+        const FUNC_LITERAL_CSTR_BUFFER: [u8; 64] = $crate::const_cstr($func);
+        const NAME_LITERAL_CSTR_BUFFER: [u8; 64] = $crate::const_cstr($name);
+        const FILE_LITERAL_CSTR_BUFFER: [u8; 64] = $crate::const_cstr(file!());
+        const SRC_LOC: $crate::___tracy_source_location_data =
+            $crate::___tracy_source_location_data {
+                color: 0,
+                line: line!(),
+                file: &FILE_LITERAL_CSTR_BUFFER as *const _ as *const libc::c_char,
+                function: &FUNC_LITERAL_CSTR_BUFFER as *const _ as *const libc::c_char,
+                name: &NAME_LITERAL_CSTR_BUFFER as *const _ as *const libc::c_char,
+            };
+        const SRC_LOC_PTR: &'static $crate::___tracy_source_location_data = &SRC_LOC;
+        let _guard =
+            $crate::ZoneGuard::from(unsafe { $crate::___tracy_emit_zone_begin(SRC_LOC_PTR, 1) });
     };
 }
 

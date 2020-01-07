@@ -8,6 +8,11 @@ fn main() {
         .shared_flag(true)
         .pic(true)
         .define("TRACY_ENABLE", "1")
+        .flag("-Wno-implicit-fallthrough")
+        .flag("-Wno-unused-parameter")
+        .flag("-Wno-unused-function")
+        .flag("-Wno-enum-compare")
+        .flag("-Wno-sign-compare")
         .file("tracy/TracyClient.cpp")
         .compile("tracy");
 }
