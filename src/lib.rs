@@ -3,6 +3,7 @@
 #![feature(const_loop)]
 #![feature(const_panic)]
 
+pub use libc;
 use libc::c_char;
 
 #[repr(C)]
@@ -62,6 +63,9 @@ impl Drop for ZoneGuard {
     }
 }
 
+unsafe impl Send for ZoneGuard {}
+unsafe impl Sync for ZoneGuard {}
+
 pub struct FrameGuard();
 impl FrameGuard {
     pub fn new() -> Self {
@@ -111,9 +115,9 @@ macro_rules! zone {
             $crate::___tracy_source_location_data {
                 color: 0,
                 line: line!(),
-                file: &FILE_LITERAL_CSTR_BUFFER as *const _ as *const libc::c_char,
-                function: &FUNC_LITERAL_CSTR_BUFFER as *const _ as *const libc::c_char,
-                name: &NAME_LITERAL_CSTR_BUFFER as *const _ as *const libc::c_char,
+                file: &FILE_LITERAL_CSTR_BUFFER as *const _ as *const $crate::libc::c_char,
+                function: &FUNC_LITERAL_CSTR_BUFFER as *const _ as *const $crate::libc::c_char,
+                name: &NAME_LITERAL_CSTR_BUFFER as *const _ as *const $crate::libc::c_char,
             };
         const SRC_LOC_PTR: &'static $crate::___tracy_source_location_data = &SRC_LOC;
         let _guard =
