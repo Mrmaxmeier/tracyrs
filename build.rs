@@ -1,6 +1,11 @@
 use cc::Build;
 
 fn main() {
+    if cfg!(not(tracy_enable)) {
+        println!("cargo:warning=tracyrs: Tracy instrumentation is not enabled.");
+        return;
+    }
+
     println!("cargo:rustc-link-lib=dl");
     println!("cargo:rustc-link-lib=pthread");
 

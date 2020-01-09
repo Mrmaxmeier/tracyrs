@@ -69,8 +69,9 @@ unsafe impl Sync for ZoneGuard {}
 pub struct FrameGuard();
 impl FrameGuard {
     pub fn new() -> Self {
-        let name = b"frame\0";
+        #[cfg(tracy_enable)]
         unsafe {
+            let name = b"frame\0";
             ___tracy_emit_frame_mark_start(name as *const _ as *const c_char);
         }
         FrameGuard()
@@ -79,8 +80,9 @@ impl FrameGuard {
 
 impl Drop for FrameGuard {
     fn drop(&mut self) {
-        let name = b"frame\0";
+        #[cfg(tracy_enable)]
         unsafe {
+            let name = b"frame\0";
             ___tracy_emit_frame_mark_end(name as *const _ as *const c_char);
         }
     }
@@ -120,6 +122,7 @@ macro_rules! zone {
                 name: &NAME_LITERAL_CSTR_BUFFER as *const _ as *const $crate::libc::c_char,
             };
         const SRC_LOC_PTR: &'static $crate::___tracy_source_location_data = &SRC_LOC;
+        #[cfg(tracy_enable)]
         let _guard =
             $crate::ZoneGuard::from(unsafe { $crate::___tracy_emit_zone_begin(SRC_LOC_PTR, 1) });
     };
