@@ -9,3 +9,12 @@ libc = "0.2.62"
 
 [build-dependencies]
 cc = "1.0.0"
+
+[features]
+default = ["tracy_enable"]
+
+# tracy defines
+tracy_enable = []
+tracy_on_demand = []
+tracy_no_exit = []
+tracy_no_broadcast = []
