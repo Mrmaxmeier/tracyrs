@@ -63,8 +63,8 @@ impl Drop for ZoneGuard {
     }
 }
 
-unsafe impl Send for ZoneGuard {}
-unsafe impl Sync for ZoneGuard {}
+// unsafe impl Send for ZoneGuard {}
+// unsafe impl Sync for ZoneGuard {}
 
 pub struct FrameGuard();
 impl FrameGuard {
