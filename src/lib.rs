@@ -30,6 +30,23 @@ extern "C" {
     fn ___tracy_emit_frame_mark(name: *const c_char);
     fn ___tracy_emit_frame_mark_start(name: *const c_char);
     fn ___tracy_emit_frame_mark_end(name: *const c_char);
+
+    fn ___tracy_emit_plot(name: *const c_char, val: f64);
+    fn ___tracy_emit_messageL(txt: *const c_char, callstack: u32);
+}
+
+pub fn emit_plot(name: &'static [u8], val: f64) {
+    #[cfg(feature = "tracy_enable")]
+    unsafe {
+        ___tracy_emit_plot(name as *const _ as *const c_char, val);
+    }
+}
+
+pub fn emit_message_l(txt: &'static [u8]) {
+    #[cfg(feature = "tracy_enable")]
+    unsafe {
+        ___tracy_emit_messageL(txt as *const _ as *const c_char, 0);
+    }
 }
 
 #[repr(C)]
@@ -66,15 +83,15 @@ impl Drop for ZoneGuard {
 // unsafe impl Send for ZoneGuard {}
 // unsafe impl Sync for ZoneGuard {}
 
-pub struct FrameGuard();
+pub struct FrameGuard(&'static [u8]);
 impl FrameGuard {
     pub fn new() -> Self {
+        let name = b"frame\0";
         #[cfg(feature = "tracy_enable")]
         unsafe {
-            let name = b"frame\0";
             ___tracy_emit_frame_mark_start(name as *const _ as *const c_char);
         }
-        FrameGuard()
+        FrameGuard(name)
     }
 }
 
@@ -82,8 +99,7 @@ impl Drop for FrameGuard {
     fn drop(&mut self) {
         #[cfg(feature = "tracy_enable")]
         unsafe {
-            let name = b"frame\0";
-            ___tracy_emit_frame_mark_end(name as *const _ as *const c_char);
+            ___tracy_emit_frame_mark_end(self.0 as *const _ as *const c_char);
         }
     }
 }
@@ -133,6 +149,21 @@ macro_rules! zone {
 macro_rules! zone {
     ($func:literal) => {};
     ($func:literal, $name:literal) => {};
+}
+
+#[cfg(feature = "tracy_enable")]
+#[macro_export]
+macro_rules! message {
+    ($txt:literal) => {{
+        const TXT_LITERAL_CSTR_BUFFER: [u8; 64] = $crate::const_cstr($txt);
+        $crate::emit_message_l(&TXT_LITERAL_CSTR_BUFFER);
+    }};
+}
+
+#[cfg(not(feature = "tracy_enable"))]
+#[macro_export]
+macro_rules! message {
+    ($txt:literal) => {};
 }
 
 #[cfg(test)]
