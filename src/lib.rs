@@ -76,7 +76,10 @@ impl ZoneGuard {
 
 impl Drop for ZoneGuard {
     fn drop(&mut self) {
-        unsafe { crate::___tracy_emit_zone_end(self.0) }
+        #[cfg(feature = "tracy_enable")]
+        unsafe {
+            crate::___tracy_emit_zone_end(self.0)
+        }
     }
 }
 
