@@ -35,17 +35,17 @@ extern "C" {
     fn ___tracy_emit_messageL(txt: *const c_char, callstack: u32);
 }
 
-pub fn emit_plot(name: &'static [u8], val: f64) {
+pub fn emit_plot(_name: &'static [u8], _val: f64) {
     #[cfg(feature = "tracy_enable")]
     unsafe {
-        ___tracy_emit_plot(name as *const _ as *const c_char, val);
+        ___tracy_emit_plot(_name as *const _ as *const c_char, _val);
     }
 }
 
-pub fn emit_message_l(txt: &'static [u8]) {
+pub fn emit_message_l(_txt: &'static [u8]) {
     #[cfg(feature = "tracy_enable")]
     unsafe {
-        ___tracy_emit_messageL(txt as *const _ as *const c_char, 0);
+        ___tracy_emit_messageL(_txt as *const _ as *const c_char, 0);
     }
 }
 
