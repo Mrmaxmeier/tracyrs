@@ -125,11 +125,11 @@ pub const fn const_cstr(x: &'static str) -> [u8; 64] {
 
 #[cfg(feature = "tracy_enable")]
 #[macro_export]
-macro_rules! zone {
+macro_rules! zone_guard {
     ($func:literal) => {
-        $crate::zone!($func, $func)
+        $crate::zone_guard!($func, $func)
     };
-    ($func:literal, $name:literal) => {
+    ($func:literal, $name:literal) => {{
         const FUNC_LITERAL_CSTR_BUFFER: [u8; 64] = $crate::const_cstr($func);
         const NAME_LITERAL_CSTR_BUFFER: [u8; 64] = $crate::const_cstr($name);
         const FILE_LITERAL_CSTR_BUFFER: [u8; 64] = $crate::const_cstr(file!());
@@ -142,8 +142,29 @@ macro_rules! zone {
                 name: &NAME_LITERAL_CSTR_BUFFER as *const _ as *const $crate::libc::c_char,
             };
         const SRC_LOC_PTR: &'static $crate::___tracy_source_location_data = &SRC_LOC;
-        let _guard =
-            $crate::ZoneGuard::from(unsafe { $crate::___tracy_emit_zone_begin(SRC_LOC_PTR, 1) });
+        $crate::ZoneGuard::from(unsafe { $crate::___tracy_emit_zone_begin(SRC_LOC_PTR, 1) })
+    }};
+}
+
+#[cfg(not(feature = "tracy_enable"))]
+#[macro_export]
+macro_rules! zone_guard {
+    ($func:literal) => {
+        ()
+    };
+    ($func:literal, $name:literal) => {
+        ()
+    };
+}
+
+#[cfg(feature = "tracy_enable")]
+#[macro_export]
+macro_rules! zone {
+    ($func:literal) => {
+        $crate::zone!($func, $func)
+    };
+    ($func:literal, $name:literal) => {
+        let _guard = $crate::zone_guard!($func, $name);
     };
 }
 
