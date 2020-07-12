@@ -1,7 +1,5 @@
-#![feature(const_fn)]
-#![feature(const_if_match)]
-#![feature(const_loop)]
-#![feature(const_panic)]
+#![cfg_attr(feature = "tracy_enable", feature(const_panic))]
+#![cfg_attr(feature = "tracy_enable", feature(const_fn))]
 
 pub use libc;
 use libc::c_char;
@@ -107,6 +105,7 @@ impl Drop for FrameGuard {
     }
 }
 
+#[cfg(feature = "tracy_enable")]
 pub const fn const_cstr(x: &'static str) -> [u8; 64] {
     assert!(x.len() < 64);
     let x = x.as_bytes();
