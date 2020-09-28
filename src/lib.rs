@@ -10,7 +10,6 @@ pub struct ZoneCtx {
 }
 pub type TracyCZoneCtx = *const ZoneCtx;
 
-#[no_mangle]
 extern "C" {
     pub fn ___tracy_emit_zone_begin(
         srcloc: *const ___tracy_source_location_data,
