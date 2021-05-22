@@ -1,5 +1,4 @@
 #![cfg_attr(feature = "tracy_enable", feature(const_panic))]
-#![cfg_attr(feature = "tracy_enable", feature(const_fn))]
 
 pub use libc;
 use libc::c_char;
