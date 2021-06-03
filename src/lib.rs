@@ -22,6 +22,8 @@ extern "C" {
     fn ___tracy_emit_zone_end(ctx: TracyCZoneCtx);
     fn ___tracy_emit_zone_name(ctx: TracyCZoneCtx, name: *const c_char, size: usize);
     fn ___tracy_emit_zone_text(ctx: TracyCZoneCtx, text: *const c_char, size: usize);
+    fn ___tracy_emit_zone_color(ctx: TracyCZoneCtx, color: u32);
+    fn ___tracy_emit_zone_value(ctx: TracyCZoneCtx, value: u64);
 
     fn ___tracy_emit_frame_mark(name: *const c_char);
     fn ___tracy_emit_frame_mark_start(name: *const c_char);
@@ -42,6 +44,13 @@ pub fn emit_message_l(_txt: &'static [u8]) {
     #[cfg(feature = "tracy_enable")]
     unsafe {
         ___tracy_emit_messageL(_txt as *const _ as *const c_char, 0);
+    }
+}
+
+pub fn frame_mark() {
+    #[cfg(feature = "tracy_enable")]
+    unsafe {
+        ___tracy_emit_frame_mark(std::ptr::null());
     }
 }
 
@@ -68,6 +77,22 @@ impl ZoneGuard {
     pub fn from(ctx: TracyCZoneCtx) -> Self {
         ZoneGuard(ctx)
     }
+
+    pub fn color(&mut self, color: u32) {
+        let _ = color;
+        #[cfg(feature = "tracy_enable")]
+        unsafe {
+            crate::___tracy_emit_zone_color(self.0, color)
+        }
+    }
+
+    pub fn value(&mut self, value: u64) {
+        let _ = value;
+        #[cfg(feature = "tracy_enable")]
+        unsafe {
+            crate::___tracy_emit_zone_value(self.0, value)
+        }
+    }
 }
 
 impl Drop for ZoneGuard {
@@ -78,9 +103,6 @@ impl Drop for ZoneGuard {
         }
     }
 }
-
-// unsafe impl Send for ZoneGuard {}
-// unsafe impl Sync for ZoneGuard {}
 
 pub struct FrameGuard(&'static [u8]);
 impl FrameGuard {
@@ -147,10 +169,10 @@ macro_rules! zone_guard {
 #[macro_export]
 macro_rules! zone_guard {
     ($func:literal) => {
-        ()
+        $crate::ZoneGuard::from(std::ptr::null())
     };
     ($func:literal, $name:literal) => {
-        ()
+        $crate::ZoneGuard::from(std::ptr::null())
     };
 }
 
@@ -185,11 +207,4 @@ macro_rules! message {
 #[macro_export]
 macro_rules! message {
     ($txt:literal) => {};
-}
-
-#[cfg(test)]
-mod tests {
-    fn test() {
-        zone!("test");
-    }
 }
