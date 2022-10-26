@@ -37,6 +37,8 @@ fn main() {
         .flag("-Wno-unused-function")
         .flag("-Wno-enum-compare")
         .flag("-Wno-sign-compare")
-        .file("tracy/TracyClient.cpp")
+        .flag("-Wno-empty-body")
+        .flag("-Wno-missing-field-initializers")
+        .file("tracy/public/TracyClient.cpp")
         .compile("tracy");
 }
