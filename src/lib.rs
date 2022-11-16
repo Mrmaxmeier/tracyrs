@@ -123,13 +123,15 @@ impl Drop for FrameGuard {
     }
 }
 
+pub const CONST_CSTR_BUF_LEN: usize = 256;
+
 #[cfg(feature = "tracy_enable")]
-pub const fn const_cstr(x: &'static str) -> [u8; 64] {
-    assert!(x.len() < 64);
+pub const fn const_cstr(x: &'static str) -> [u8; CONST_CSTR_BUF_LEN] {
+    assert!(x.len() < CONST_CSTR_BUF_LEN);
     let x = x.as_bytes();
-    let mut res: [u8; 64] = [0; 64];
+    let mut res: [u8; CONST_CSTR_BUF_LEN] = [0; CONST_CSTR_BUF_LEN];
     let mut i = 0;
-    while i < 63 {
+    while i < CONST_CSTR_BUF_LEN - 1 {
         if i < x.len() {
             res[i] = x[i]
         } else {
@@ -147,9 +149,12 @@ macro_rules! zone_guard {
         $crate::zone_guard!($func, $func)
     };
     ($func:literal, $name:literal) => {{
-        const FUNC_LITERAL_CSTR_BUFFER: [u8; 64] = $crate::const_cstr($func);
-        const NAME_LITERAL_CSTR_BUFFER: [u8; 64] = $crate::const_cstr($name);
-        const FILE_LITERAL_CSTR_BUFFER: [u8; 64] = $crate::const_cstr(file!());
+        const FUNC_LITERAL_CSTR_BUFFER: [u8; $crate::CONST_CSTR_BUF_LEN] =
+            $crate::const_cstr($func);
+        const NAME_LITERAL_CSTR_BUFFER: [u8; $crate::CONST_CSTR_BUF_LEN] =
+            $crate::const_cstr($name);
+        const FILE_LITERAL_CSTR_BUFFER: [u8; $crate::CONST_CSTR_BUF_LEN] =
+            $crate::const_cstr(file!());
         const SRC_LOC: $crate::___tracy_source_location_data =
             $crate::___tracy_source_location_data {
                 color: 0,
@@ -196,7 +201,7 @@ macro_rules! zone {
 #[macro_export]
 macro_rules! message {
     ($txt:literal) => {{
-        const TXT_LITERAL_CSTR_BUFFER: [u8; 64] = $crate::const_cstr($txt);
+        const TXT_LITERAL_CSTR_BUFFER: [u8; $crate::CONST_CSTR_BUF_LEN] = $crate::const_cstr($txt);
         $crate::emit_message_l(&TXT_LITERAL_CSTR_BUFFER);
     }};
 }
