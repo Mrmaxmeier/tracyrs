@@ -1,1 +1,1 @@
-**Embedded VERSION: v0.11.0**
+**Embedded VERSION: v0.11.1**
